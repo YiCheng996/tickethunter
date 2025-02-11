@@ -1,0 +1,108 @@
+请求 URL:
+https://h5api.m.goofish.com/h5/mtop.taobao.idlemtopsearch.pc.search/1.0/?jsv=2.7.2&appKey=34839810&t=1730810788033&sign=17b006e1eb99728b5c570a5b02b60fde&v=1.0&type=originaljson&accountSite=xianyu&dataType=json&timeout=20000&api=mtop.taobao.idlemtopsearch.pc.search&sessionOption=AutoLoginOnly&spm_cnt=a21ybx.search.0.0&spm_pre=a21ybx.search.searchInput.0
+Request Method:
+POST
+状态代码:
+200 OK
+远程地址:
+127.0.0.1:10809
+引用站点策略:
+strict-origin-when-cross-origin
+access-control-allow-credentials:
+true
+access-control-allow-origin:
+https://www.goofish.com
+access-control-expose-headers:
+x-eagleeye-id
+cache-control:
+no-cache
+content-encoding:
+zstd
+content-type:
+application/json;charset=UTF-8
+date:
+Tue, 05 Nov 2024 12:46:28 GMT
+eagleeye-traceid:
+213e382317308107880546804eb3fb
+last-modified:
+Tue, 5 Nov 2024 12:46:28 GMT
+mtop-idle-home:
+idle-mtop-search033061188145.center.na610
+mtop-x-provider:
+d06bb9f14c7aedb9a127aeb7947ed782dd984957d81a720dd51ed7edd27cb1c5099bdfe1887bd290ec9cddc6964f5be0
+pragma:
+no-cache
+s-brt:
+387
+s-cunit:
+0
+s-rt:
+399
+s_group:
+tao-session
+s_ip:
+457079564a634831513073335966416352513d3d
+s_read_unit:
+[CN:CENTER]
+s_status:
+STATUS_NORMAL
+s_tag:
+285873024827392|134217728^0|^xianyu:2457985859:^xianyu#45106365017915392|0
+s_tid:
+213e382317308107880546804eb3fb
+s_ucode:
+CN:CENTER
+s_v:
+4.0.4.9
+server:
+Tengine/Aserver
+timing-allow-origin:
+*
+vary:
+Accept-Encoding
+x-eagleeye-id:
+213e382317308107880546804eb3fb
+x-node:
+ec60febfbc8b8612cf55dc9eb8ab2229
+x-powered-by:
+m.taobao.com
+:authority:
+h5api.m.goofish.com
+:method:
+POST
+:path:
+/h5/mtop.taobao.idlemtopsearch.pc.search/1.0/?jsv=2.7.2&appKey=34839810&t=1730810788033&sign=17b006e1eb99728b5c570a5b02b60fde&v=1.0&type=originaljson&accountSite=xianyu&dataType=json&timeout=20000&api=mtop.taobao.idlemtopsearch.pc.search&sessionOption=AutoLoginOnly&spm_cnt=a21ybx.search.0.0&spm_pre=a21ybx.search.searchInput.0
+:scheme:
+https
+accept:
+application/json
+accept-encoding:
+gzip, deflate, br, zstd
+accept-language:
+zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,ja;q=0.5
+content-length:
+387
+content-type:
+application/x-www-form-urlencoded
+cookie:
+cookie2=15a13b8265439ea1ba1b7108e77e5903; _samesite_flag_=true; t=6777fa6830fec13ec735e3b9741f18d1; _tb_token_=eeb3437e73bee; sgcookie=E100EM103ZAJsB2NLbSo5ihznIpTn%2F85pPvZELh9Blg9kJWk0wnF%2FX8Wt7UJqFKaXCoviLkSOitHId3Gx1Ss0fiKHY%2BCeZRfK%2FbqpxgQi2FSLOk%3D; csg=e9e3a867; unb=2457985859; mtop_partitioned_detect=1; _m_h5_tk=02a7b2ed3d363873ed4a8d3d1981fc06_1730814826055; _m_h5_tk_enc=8339ad3649eb6a950ee69faefb7467f3; x5sectag=483639; x5sec=7b22733b32223a2263636163303537373537623931623938222c22617365727665723b33223a22307c4349436e714c6b47454a6d3631753442476777794e4455334f5467314f4455354f7a4969436d4e6863484e736157526c646a496f4344432b317679422f2f2f2f2f2f3842227d; isg=BCIilmM8sVcbaK2IFdU4gyYac6iEcyaNxyrs42yyvhVAP8G5VAMinVL9b3vDL54l; tfstk=fbPtNt2NbMjG9bTppK6nn5wSpCQ3XSUaIlzWimmMhkELPz-ih5cgDKEguoDfbfVYvrZR7qjaiFyUqzOgsOlDMflqGgjlZ_0g7jljOHuUShoIoV1mlji6qthGdgjlZ6X6RjIOql2jX4KKuDgsljO1JXgokjg6Gd_KAq3yhhZbcy_K7qT61COXdegrAmGjGoaIan6tvFgpM-7Yxbgy1OvkEW3C00aO-diztVQr2PndVMFpaAn75Ddf4u_v2mnUNMXL8uy_j2rAwMh4Y-ZjkktCmAzbpk3TjgKqm5zgMc4OCGzKtcUjHbLf1yhtXYNiBFOgVyUbEvFhP_lt1cwm_rYRjyFTjPPLoE9I6f2Ke5h5ahi0KzFxkSSV9uUzTk3QVsI14rFuwPFDq03DCwQp3Kks8m4a_AQMZ1WKJ0btWKJqh2uKqwQp3Kks82nlWhp23xgF.
+origin:
+https://www.goofish.com
+priority:
+u=1, i
+referer:
+https://www.goofish.com/
+sec-ch-ua:
+"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"
+sec-ch-ua-mobile:
+?0
+sec-ch-ua-platform:
+"Windows"
+sec-fetch-dest:
+empty
+sec-fetch-mode:
+cors
+sec-fetch-site:
+same-site
+user-agent:
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0

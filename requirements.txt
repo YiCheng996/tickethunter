@@ -1,0 +1,34 @@
+# Web框架和扩展
+Flask==2.3.3
+flask-login==0.6.2
+flask-caching==2.0.2
+flask-limiter==3.3.1
+
+# 任务队列和调度
+celery==5.3.4
+APScheduler==3.10.4
+schedule==1.2.0
+
+# 数据库相关
+mysql-connector-python==8.1.0
+DBUtils==3.0.3
+redis==4.6.0
+
+# AI和API
+dashscope==1.10.0
+requests==2.31.0
+
+# 工具库
+python-dotenv==1.0.0
+PyYAML==6.0.1
+
+# 时间处理
+pytz==2023.3
+
+# 日志和监控
+logging==0.5.1.2
+
+# 开发工具
+pytest==7.4.2
+black==23.9.1
+flake8==6.1.0 
