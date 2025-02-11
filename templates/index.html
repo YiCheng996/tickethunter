@@ -332,56 +332,151 @@
 
         // 定义状态样式映射
         const statusStyles = {
-            'pending': { bg: 'secondary', text: '等待中' },
-            'running': { bg: 'primary', text: '执行中' },
-            'completed': { bg: 'success', text: '已完成' },
-            'error': { bg: 'danger', text: '出错' },
-            'cancelled': { bg: 'dark', text: '已取消' }
+            'running': { bg: 'primary', text: '监控中' },
+            'stopped': { bg: 'warning', text: '已中止' },
+            'failed': { bg: 'danger', text: '监控失败' }
         };
+
+        // 格式化日期时间
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
 
         // 加载任务列表
         function loadTasks() {
             $.get('/tasks', function(response) {
-                if (response.success) {
-                    $('.task-list').empty();
-                    response.tasks.forEach(task => {
-                        const status = statusStyles[task.status] || statusStyles.pending;
-                        const taskHtml = `
-                            <div class="task-item ${task.id === currentTaskId ? 'active' : ''}" 
-                                 data-task-id="${task.id}">
-                                <div class="task-header">
-                                    <span class="task-keyword">${task.keyword}</span>
-                                    <span class="badge bg-${status.bg}">${status.text}</span>
+                $('.task-list').empty();
+                if (!response || response.length === 0) {
+                    $('.task-list').html(`
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-inbox mb-2" style="font-size: 2rem;"></i>
+                            <p>暂无搜索任务</p>
+                        </div>
+                    `);
+                    return;
+                }
+                
+                response.forEach(task => {
+                    const taskHtml = `
+                        <div class="task-item ${task.id === currentTaskId ? 'active' : ''}" 
+                             data-task-id="${task.id}">
+                            <div class="task-header d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="task-keyword">${task.msg || '搜索任务'}</span>
+                                    <div class="mt-2">
+                                        <span class="badge bg-${getStatusBadgeClass(task.status)}">${getStatusText(task.status)}</span>
+                                    </div>
                                 </div>
-                                <div class="task-stats">
-                                    <small>结果数: ${task.result_count || 0}</small>
-                                    ${task.last_run_at ? `<br><small>上次执行: ${task.last_run_at}</small>` : ''}
-                                    ${task.next_run_at ? `<br><small>下次执行: ${task.next_run_at}</small>` : ''}
-                                    <br><small>创建时间: ${task.created_at}</small>
-                                </div>
-                                <div class="task-actions mt-2">
-                                    ${task.status !== 'cancelled' ? `
-                                        <button class="btn btn-sm btn-outline-danger cancel-task-btn" 
-                                                onclick="cancelTask(${task.id}, event)">
-                                            中止任务
-                                        </button>
-                                    ` : ''}
+                                <div class="task-actions">
+                                    <button class="btn btn-sm btn-outline-danger stop-task" 
+                                            data-task-id="${task.id}"
+                                            ${task.status !== 'running' ? 'disabled' : ''}>
+                                        <i class="bi bi-stop-circle"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-dark delete-task" 
+                                            data-task-id="${task.id}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
                                 </div>
                             </div>
-                        `;
-                        $('.task-list').append(taskHtml);
-                    });
+                            <div class="task-stats">
+                                ${task.message ? `<small class="text-muted">${task.message}</small>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    $('.task-list').append(taskHtml);
+                });
+
+                // 如果当前任务状态发生变化，重新加载结果
+                const currentTask = response.find(task => task.id === currentTaskId);
+                if (currentTask && currentTask.status !== lastTaskStatus) {
+                    lastTaskStatus = currentTask.status;
+                    loadResults();
                 }
             });
         }
 
-        // 切换任务
-        function switchTask(taskId) {
-            if (currentTaskId === taskId) return;
+        // 初始化 SSE 连接
+        function initSSE() {
+            const eventSource = new EventSource('/stream');
             
-            currentTaskId = taskId;
-            $('.task-item').removeClass('active');
-            $(`.task-item[data-task-id="${taskId}"]`).addClass('active');
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'task_update') {
+                    loadTasks();
+                } else if (data.type === 'ticket_update' && data.data.task_id === currentTaskId) {
+                    // 添加新的票务信息到表格
+                    const ticket = data.data.ticket;
+                    const row = `
+                        <tr>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <strong>${ticket.event_name || '-'}</strong>
+                                </div>
+                            </td>
+                            <td>${ticket.city || '-'}</td>
+                            <td>${ticket.event_date || '-'}</td>
+                            <td>${ticket.area || '-'}</td>
+                            <td>${ticket.price || '-'}</td>
+                            <td>${ticket.quantity || '-'}</td>
+                            <td>${ticket.contact || '-'}</td>
+                            <td>${ticket.notes || '-'}</td>
+                            <td>${formatDateTime(data.timestamp) || '-'}</td>
+                            <td>
+                                <div class="btn-group">
+                                    ${ticket.note_url ? `
+                                        <a href="${ticket.note_url}" target="_blank" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            查看原文
+                                        </a>
+                                    ` : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    $('#resultsBody').append(row);
+                } else if (data.type === 'results_update' && data.taskId === currentTaskId) {
+                    loadResults();
+                }
+            };
+            
+            eventSource.onerror = function() {
+                console.log('SSE连接错误，5秒后重试...');
+                eventSource.close();
+                setTimeout(initSSE, 5000);
+            };
+        }
+
+        // 获取任务状态样式
+        function getStatusBadgeClass(status) {
+            const statusMap = {
+                'running': 'primary',
+                'stopped': 'warning',
+                'failed': 'danger'
+            };
+            return statusMap[status] || 'primary';
+        }
+
+        // 获取任务状态文本
+        function getStatusText(status) {
+            const statusMap = {
+                'running': '监控中',
+                'stopped': '已中止',
+                'failed': '监控失败'
+            };
+            return statusMap[status] || '监控中';
+        }
+
+        // 加载结果
+        function loadResults() {
+            if (!currentTaskId) return;
             
             // 清空现有结果
             $('#resultsBody').empty();
@@ -399,40 +494,37 @@
             `);
             
             // 加载任务结果
-            $.get(`/tasks/${taskId}/results`, function(response) {
-                if (response.success) {
-                    displayResults(response.results);
-                    
-                    // 更新标题和按钮
-                    const taskItem = $(`.task-item[data-task-id="${taskId}"]`);
-                    const keyword = taskItem.find('.task-keyword').text();
-                    $('#currentTaskTitle').text(`"${keyword}" 的搜索结果`);
-                    
-                    // 显示取消按钮
-                    const status = taskItem.find('.badge').text();
-                    if (status !== '已取消') {
-                        $('#cancelTaskBtn').removeClass('d-none');
-                    }
-                } else {
-                    $('#resultsBody').html(`
-                        <tr>
-                            <td colspan="10" class="text-center py-4 text-danger">
-                                <i class="bi bi-exclamation-circle me-2"></i>
-                                加载失败：${response.error || '未知错误'}
-                            </td>
-                        </tr>
-                    `);
-                }
+            $.get('/api/tickets', function(response) {
+                displayResults(response);
             }).fail(function() {
                 $('#resultsBody').html(`
                     <tr>
                         <td colspan="10" class="text-center py-4 text-danger">
                             <i class="bi bi-exclamation-circle me-2"></i>
-                            网络错误，请稍后重试
+                            加载失败，请稍后重试
                         </td>
                     </tr>
                 `);
             });
+        }
+
+        // 切换任务
+        function switchTask(taskId) {
+            if (currentTaskId === taskId) return;
+            
+            currentTaskId = taskId;
+            lastTaskStatus = null; // 重置状态跟踪
+            
+            $('.task-item').removeClass('active');
+            $(`.task-item[data-task-id="${taskId}"]`).addClass('active');
+            
+            // 更新标题
+            const taskItem = $(`.task-item[data-task-id="${taskId}"]`);
+            const keyword = taskItem.find('.task-keyword').text();
+            $('#currentTaskTitle').text(`"${keyword}" 的搜索结果`);
+            
+            // 加载结果
+            loadResults();
         }
 
         // 提交搜索
@@ -441,11 +533,45 @@
             const keyword = $('#keyword').val().trim();
             if (!keyword) return;
             
-            // 创建新任务并开始搜索
+            // 显示加载状态
+            $('.task-list').prepend(`
+                <div class="task-item">
+                    <div class="task-header">
+                        <span class="task-keyword">${keyword}</span>
+                        <span class="badge bg-primary">执行中</span>
+                    </div>
+                    <div class="task-stats">
+                        <small>正在搜索...</small>
+                    </div>
+                </div>
+            `);
+            
+            // 创建新任务并添加到监控
             $.post('/search', {keyword: keyword}, function(response) {
                 if (response.success) {
-                    loadTasks();
                     $('#keyword').val('');
+                    // 添加到监控
+                    $.post('/api/monitor/add_keyword', {keyword: keyword}, function(response) {
+                        if (response.success) {
+                            console.log('关键词已添加到监控');
+                        }
+                    });
+                    
+                    // 延迟1秒后刷新任务列表并切换到新任务
+                    setTimeout(() => {
+                        $.get('/tasks', function(tasks) {
+                            if (tasks && tasks.length > 0) {
+                                // 获取最新创建的任务（第一个任务）
+                                const latestTask = tasks[0];
+                                // 切换到新任务
+                                switchTask(latestTask.id);
+                                // 更新任务列表
+                                loadTasks();
+                            }
+                        });
+                    }, 1000);
+                } else {
+                    alert('搜索失败：' + (response.error || '未知错误'));
                 }
             });
         });
@@ -473,35 +599,12 @@
         });
 
         // 初始化
+        let lastTaskStatus = null;
+        
         $(document).ready(function() {
             loadTasks();
-            // 每10秒刷新一次任务列表
-            setInterval(loadTasks, 10000);
+            initSSE();
         });
-
-        // 添加取消任务的函数
-        function cancelTask(taskId, event) {
-            event.stopPropagation(); // 阻止事件冒泡
-            
-            if (!confirm('确定要中止该任务吗？')) {
-                return;
-            }
-            
-            $.ajax({
-                url: `/tasks/${taskId}`,
-                method: 'DELETE',
-                success: function(response) {
-                    if (response.success) {
-                        loadTasks();
-                        if (currentTaskId === taskId) {
-                            $('#currentTaskTitle').text('搜索结果');
-                            $('#resultsBody').empty();
-                            currentTaskId = null;
-                        }
-                    }
-                }
-            });
-        }
 
         // 显示搜索结果
         function displayResults(results) {
@@ -520,23 +623,14 @@
                 return;
             }
             
-            // 使用 Set 来去重
-            const processedNoteIds = new Set();
-            
-            // 按发布时间排序
+            // 按创建时间排序
             const sortedResults = results.sort((a, b) => {
-                const timeA = new Date(a.create_time || 0);
-                const timeB = new Date(b.create_time || 0);
+                const timeA = new Date(a.created_at || 0);
+                const timeB = new Date(b.created_at || 0);
                 return timeB - timeA;  // 降序排序
             });
             
             sortedResults.forEach(result => {
-                // 检查是否已经显示过该笔记
-                if (processedNoteIds.has(result.note_id)) {
-                    return;
-                }
-                processedNoteIds.add(result.note_id);
-                
                 const row = `
                     <tr>
                         <td>
@@ -545,13 +639,13 @@
                             </div>
                         </td>
                         <td>${result.city || '-'}</td>
-                        <td>${result.event_date ? new Date(result.event_date).toLocaleDateString() : '-'}</td>
+                        <td>${result.event_date || '-'}</td>
                         <td>${result.area || '-'}</td>
                         <td>${result.price || '-'}</td>
                         <td>${result.quantity || '-'}</td>
                         <td>${result.contact || '-'}</td>
                         <td>${result.notes || '-'}</td>
-                        <td>${result.create_time || '-'}</td>
+                        <td>${formatDateTime(result.created_at) || '-'}</td>
                         <td>
                             <div class="btn-group">
                                 ${result.note_url ? `
@@ -567,6 +661,40 @@
                 tbody.append(row);
             });
         }
+
+        // 停止任务
+        $(document).on('click', '.stop-task', function(e) {
+            e.stopPropagation();
+            const taskId = $(this).data('task-id');
+            if (confirm('确定要停止此任务吗？')) {
+                $.post(`/tasks/${taskId}/stop`, function(response) {
+                    if (response.success) {
+                        loadTasks();
+                    } else {
+                        alert('停止任务失败：' + (response.error || '未知错误'));
+                    }
+                });
+            }
+        });
+
+        // 删除任务
+        $(document).on('click', '.delete-task', function(e) {
+            e.stopPropagation();
+            const taskId = $(this).data('task-id');
+            if (confirm('确定要删除此任务吗？此操作不可恢复。')) {
+                $.post(`/tasks/${taskId}/delete`, function(response) {
+                    if (response.success) {
+                        loadTasks();
+                        if (currentTaskId === taskId) {
+                            $('#resultsBody').empty();
+                            $('#currentTaskTitle').text('搜索结果');
+                        }
+                    } else {
+                        alert('删除任务失败：' + (response.error || '未知错误'));
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html> 

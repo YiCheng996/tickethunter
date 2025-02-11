@@ -1,34 +1,33 @@
 # TicketHunter 票务监控系统
 
 ## 项目简介
-TicketHunter是一个智能票务监控和分析系统，专门用于追踪和分析社交媒体平台上的票务信息。该系统能够自动检测、分析和管理演出票务相关信息，为用户提供实时的票务监控服务。
+TicketHunter是一个智能票务监控和分析系统，专门用于追踪和分析小红书平台上的票务信息。该系统能够自动检测、分析和管理演出票务相关信息，为用户提供实时的票务监控服务。
 
 ## 主要功能
 - 🎫 智能票务识别：使用通义千问AI模型自动识别和分析票务信息
-- 📊 数据可视化：直观展示票务数据和统计信息
-- 🔍 实时监控：支持多平台票务信息实时追踪
-- 🔔 自动提醒：设置关键词后自动推送相关票务信息
-- 🛡️ 安全防护：内置访问频率限制和用户认证机制
-- 💾 数据持久化：使用MySQL数据库存储历史数据
+- 🔍 实时搜索：支持关键词搜索票务信息
+- 📊 数据展示：直观展示票务数据和搜索结果
+- 🔄 实时更新：使用SSE（Server-Sent Events）实现实时数据推送
+- 🛡️ 安全防护：内置访问频率限制和错误处理机制
+- 💾 数据持久化：使用SQLite数据库存储历史数据
 
 ## 技术栈
-- 后端：Flask + Celery
-- 数据库：MySQL + Redis
+- 后端：Flask
+- 数据库：SQLite
 - AI模型：通义千问API
-- 前端：HTML + JavaScript
-- 任务调度：APScheduler
+- 前端：Bootstrap + jQuery
+- 实时通信：Server-Sent Events (SSE)
 
 ## 环境要求
 - Python 3.8+
-- MySQL 5.7+
-- Redis 6.0+
+- 现代浏览器（支持SSE）
 - Windows/Linux/MacOS
 
 ## 快速开始
 
 ### 1. 克隆项目
 ```bash
-git clone https://github.com/yourusername/tickethunter.git
+git clone https://github.com/YiCheng996/tickethunter.git
 cd tickethunter
 ```
 
@@ -37,41 +36,25 @@ cd tickethunter
 pip install -r requirements.txt
 ```
 
-### 3. 配置数据库
-1. 在MySQL中创建数据库
-```sql
-CREATE DATABASE tickethunter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-2. 修改`config.py`中的数据库配置
+### 3. 配置API密钥
+修改`config.py`中的配置信息：
 ```python
-MYSQL_CONFIG = {
-    'host': 'localhost',
-    'user': 'your_username',
-    'password': 'your_password',
-    'database': 'tickethunter'
-}
+class Config:
+    # 通义千问API配置
+    DASHSCOPE_API_KEY = 'your_api_key'
+       
+    # 小红书配置
+    XIAOHONGSHU_COOKIE = 'your_cookie'
+    XIAOHONGSHU_COOKIE_UPDATE_TIME = '2024-02-11'  # Cookie更新时间
+    XIAOHONGSHU_COOKIE_EXPIRE_DAYS = 7  # Cookie有效期
 ```
 
-### 4. 配置API密钥
-在`ticket_analyzer.py`中设置通义千问API密钥：
-```python
-dashscope.api_key = "your_api_key"
-```
-
-### 5. 一键启动
+### 4. 启动应用
 ```bash
-python start.py
+python app.py
 ```
-启动脚本会自动：
-- ✅ 检查环境依赖
-- ✅ 验证API密钥配置
-- ✅ 启动Redis服务（Windows）
-- ✅ 启动Celery工作进程
-- ✅ 启动Flask应用
-- ✅ 提供详细的启动日志
 
-### 6. 访问系统
+### 5. 访问系统
 启动成功后，访问：http://localhost:5000
 
 ## 目录结构
@@ -79,56 +62,69 @@ python start.py
 tickethunter/
 ├── app.py              # Flask主应用
 ├── config.py           # 配置文件
-├── monitor.py          # 监控模块
-├── ticket_analyzer.py  # 票务分析模块
-├── start.py           # 一键启动脚本
+├── database.py         # 数据库模型
 ├── requirements.txt    # 项目依赖
-├── templates/         # 前端模板
-└── static/           # 静态资源
+├── templates/          # 前端模板
+│   └── index.html     # 主页面
+└── log/               # 日志目录
+    └── tickethunter.log
 ```
+
+## 功能说明
+
+### 1. 搜索功能
+- 支持关键词搜索
+- 实时显示搜索进度
+- 自动分析票务信息
+
+### 2. 任务管理
+- 查看任务状态
+- 停止运行中的任务
+- 删除历史任务
+
+### 3. 数据展示
+- 票务信息表格展示
+- 支持查看原文链接
+- 按时间排序
+
+### 4. 实时更新
+- SSE实时推送
+- 自动更新任务状态
+- 实时显示新票务信息
 
 ## 常见问题
 
-### 1. Redis启动失败
-- Windows: 确保Redis已正确安装并添加到环境变量
-- Linux/Mac: 使用包管理器安装并启动Redis服务
-```bash
-# Ubuntu/Debian
-sudo service redis-server start
+### 1. API调用失败
+- 检查API密钥是否正确配置
+- 确认API密钥额度是否充足
+- 查看日志文件获取详细错误信息
 
-# MacOS
-brew services start redis
-```
+### 2. Cookie过期
+- 更新config.py中的Cookie信息
+- 修改Cookie更新时间
+- 注意Cookie有效期设置
 
-### 2. Celery启动问题
-- Windows环境需要使用`--pool=solo`参数
-- 确保Redis服务正在运行
-- 检查项目路径是否正确
-
-### 3. MySQL连接失败
-- 检查MySQL服务是否运行
-- 验证数据库用户名和密码
-- 确保数据库已创建且字符集正确
-
-### 4. API密钥配置
-- 在通义千问官网申请API密钥
-- 正确配置在`ticket_analyzer.py`中
-- 注意保护API密钥安全
+### 3. 搜索无结果
+- 确认关键词是否准确
+- 检查网络连接状态
+- 查看后台日志排查原因
 
 ## 开发指南
-1. 代码规范
-   - 遵循PEP 8规范
-   - 使用Black进行代码格式化
-   - 运行Flake8进行代码检查
 
-2. 测试
-   - 使用pytest编写单元测试
-   - 运行测试：`pytest tests/`
+### 日志系统
+- 日志文件位置：`log/tickethunter.log`
+- 使用rotating handler防止日志文件过大
+- 同时输出到控制台和文件
 
-3. 日志
-   - 日志文件位置：`tickethunter.log`
-   - 使用rotating handler防止日志文件过大
-   - 同时输出到控制台和文件
+### 错误处理
+- API调用错误自动重试
+- 数据库操作事务管理
+- SSE连接自动重连
+
+### 数据安全
+- 防SQL注入
+- 请求频率限制
+- 敏感信息加密存储
 
 ## 许可证
 MIT License
